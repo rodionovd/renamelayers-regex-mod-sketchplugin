@@ -98,9 +98,12 @@ static const void *NSRegularExpressionSwizzleKey = &NSRegularExpressionSwizzleKe
                         }
                     }
                     if (captureGroupIndex == 0) {
-                        // the given index doesn't match any capture groups so we skip it entirely
-                        // (this matches the NSRegularExpression behavour)
-                        break;
+                        // 3-b) if the given index doesn't match any capture groups so we skip the first digit
+                        // and insert the rest of (if any) them as is, to match the NSRegularExpression behavour
+                        if (buffer.length > 1) {
+                            [result appendString:[buffer substringFromIndex:1]];
+                        }
+                        continue;
                     }
 
                     // 4) get the original value for this capture group and modify it if needed
