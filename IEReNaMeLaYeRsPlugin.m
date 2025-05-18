@@ -81,7 +81,7 @@ static const void *NSRegularExpressionSwizzleKey = &NSRegularExpressionSwizzleKe
                     [result appendString:@"$"];
                     continue;
                 }
-                NSInteger captureGroupIndex = [buffer integerValue];
+                NSInteger captureGroupIndex = 0;
                 NSString *leftoverDigits = nil;
                 for (NSInteger cutoff = 1; cutoff <= buffer.length; cutoff++) {
                     NSInteger candidate = [[buffer substringToIndex:cutoff] integerValue];
