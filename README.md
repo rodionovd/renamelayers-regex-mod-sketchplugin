@@ -8,7 +8,7 @@ Adds support for uppercase/lowercase/capitalize transformations for RegEx captur
 
 The plugin starts working automatically once installed.
 
-Say, you have a regex `(.+)` that captures the entire layer name as a single group (`$1`). Here're the new options available in the pattern field:
+Say, you have a regex `(.+)` that captures the entire layer name as a single group (`$1`, or in case also `$0`). Here're the new options available in the pattern field:
 
 | Input | Template | Output | Description
 | --- | --- | --- | --- |
