@@ -10,7 +10,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @interface IEReNaMeLaYeRsPlugin: NSObject
-@property (class, atomic) BOOL enabled;
+@property (class) BOOL enabled;
 @end
 
 NS_ASSUME_NONNULL_END
