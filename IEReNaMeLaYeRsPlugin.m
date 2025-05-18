@@ -98,10 +98,12 @@ static const void *NSRegularExpressionSwizzleKey = &NSRegularExpressionSwizzleKe
                         }
                     }
                     if (captureGroupIndex == 0) {
-                        // the given capture group index doesn't make sense, skip it entirely
+                        // the given index doesn't match any capture groups so we skip it entirely
                         // (this matches the NSRegularExpression behavour)
                         break;
                     }
+
+                    // 4) get the original value for this capture group and modify it if needed
                     NSString *captureGroupValue = ^NSString *(void) {
                         NSString *singleGroupTemplate = [NSString stringWithFormat:@"$%li", captureGroupIndex];
                         return originalIMP(self, swizzleInfo.selector, match, input, offset, singleGroupTemplate);
@@ -115,7 +117,7 @@ static const void *NSRegularExpressionSwizzleKey = &NSRegularExpressionSwizzleKe
                     } else {
                         [result appendString:captureGroupValue];
                     }
-
+                    // 4-a) insert the rest of the digits that were not a part of the capture group number
                     if (leftoverDigits) {
                         [result appendString:leftoverDigits];
                     }
