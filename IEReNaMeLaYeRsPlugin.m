@@ -88,16 +88,18 @@ static const void *NSRegularExpressionSwizzleKey = &NSRegularExpressionSwizzleKe
                         [result appendString:@"$"];
                         continue;
                     }
-                    NSInteger captureGroupIndex = 0;
+                    NSInteger captureGroupIndex = -1;
                     NSString *leftoverDigits = nil;
                     for (NSInteger cutoff = 1; cutoff <= buffer.length; cutoff++) {
                         NSInteger candidate = [[buffer substringToIndex:cutoff] integerValue];
-                        if (candidate <= [self numberOfCaptureGroups]) {
+                        // -[NSString integerValue] above will happily convert @"01" to 1, which is not exactly ideal for purposes here,
+                        // thus we check if we've already found the "$0" capturing group – and treat the rest of the digits as text
+                        if (candidate <= [self numberOfCaptureGroups] && captureGroupIndex != 0) {
                             captureGroupIndex = candidate;
                             leftoverDigits = [buffer substringFromIndex:cutoff];
                         }
                     }
-                    if (captureGroupIndex == 0) {
+                    if (captureGroupIndex == -1) {
                         // 3-b) if the given index doesn't match any capture groups so we skip the first digit
                         // and insert the rest of (if any) them as is, to match the NSRegularExpression behavour
                         if (buffer.length > 1) {
