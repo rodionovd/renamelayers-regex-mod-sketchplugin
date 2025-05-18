@@ -87,10 +87,7 @@ static const void *NSRegularExpressionSwizzleKey = &NSRegularExpressionSwizzleKe
                     NSInteger candidate = [[buffer substringToIndex:cutoff] integerValue];
                     if (candidate <= [self numberOfCaptureGroups]) {
                         captureGroupIndex = candidate;
-                        continue;
-                    } else {
-                        leftoverDigits = [buffer substringFromIndex:cutoff-1];
-                        break;
+                        leftoverDigits = [buffer substringFromIndex:cutoff];
                     }
                 }
                 if (captureGroupIndex == 0) {
