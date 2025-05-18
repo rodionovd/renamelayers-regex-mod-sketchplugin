@@ -1,0 +1,19 @@
+{
+  "name": "ReNaMe LaYeRs",
+  "description": "Adds support for uppercase/lowercase/capitalize transformations for RegEx capture groups in the \"Rename All...\" panel.",
+  "author": "Dmitry Rodionov",
+  "homepage": "https://github.com/rodionovd/renamelayers-regex-mod-sketchplugin",
+  "version": "1.0.0",
+  "identifier": "exposed.internals.ReNaMeLaYeRs-sketchplugin",
+  "compatibleVersion": "101",
+  "commands": [{
+      "identifier": "smth",
+      "script": "plugin.js",
+      "handlers": {
+          "actions": {
+              "Startup": "onStartup",
+              "Shutdown": "onShutdown"
+          }
+      }
+    }]
+}
