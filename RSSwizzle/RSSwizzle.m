@@ -249,7 +249,7 @@ static void swizzle(Class classToSwizzle,
     os_unfair_lock_unlock(&lock);
 }
 
-static NSMutableDictionary *swizzledClassesDictionary(){
+static NSMutableDictionary *swizzledClassesDictionary(void){
     static NSMutableDictionary *swizzledClasses;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
