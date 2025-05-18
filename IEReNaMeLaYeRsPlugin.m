@@ -38,84 +38,92 @@ static const void *NSRegularExpressionSwizzleKey = &NSRegularExpressionSwizzleKe
     //  $-1 -- expand this capture group and then capitalize it
     //  $^1 -- expand this capture group and then make it uppercase
     //  $.1 -- expand this capture group and then make it lowercase
-    RSSwizzleInstanceMethod(NSRegularExpression.class,@selector(replacementStringForResult:inString:offset:template:), RSSWReturnType(NSString *), RSSWArguments(NSTextCheckingResult *match, NSString *input, NSInteger offset, NSString *template), RSSWReplacement({
-        if (!pluginIsEnabled) {
-            return RSSWCallOriginal(match, input, offset, template);
-        }
+    [RSSwizzle swizzleInstanceMethod:@selector(replacementStringForResult:inString:offset:template:)
+                             inClass:NSRegularExpression.class
+                       newImpFactory:^id(RSSwizzleInfo *swizzleInfo) {
+        return ^NSString *(__unsafe_unretained NSRegularExpression *self, NSTextCheckingResult *match, NSString *input,
+                           NSInteger offset, NSString *template) {
+            NSString *(*originalIMP)(__unsafe_unretained id, SEL, NSTextCheckingResult *, NSString *, NSInteger, NSString *);
+            originalIMP = (__typeof(originalIMP))[swizzleInfo getOriginalImplementation];
 
-        NSScanner *scanner = [NSScanner scannerWithString:template];
-        NSMutableString *result = [NSMutableString new];
-        // FIXME: <rodionovd> we should also handle the escape characters (\) here, but I'm lazy today
-        // See https://developer.apple.com/documentation/foundation/nsregularexpression?language=objc#Template-Matching-Format
-        NSCharacterSet *captureGroupMarker = [NSCharacterSet characterSetWithCharactersInString:@"$"];
-        while (![scanner isAtEnd]) {
-            NSString *buffer;
-            // 1) eat up verbatim text
-            if ([scanner scanUpToCharactersFromSet:captureGroupMarker intoString:&buffer]) {
-                [result appendString:buffer];
+            if (!pluginIsEnabled) {
+                return originalIMP(self, swizzleInfo.selector, match, input, offset, template);
             }
-            // 2) try to eat the $ symbol(s)
-            buffer = nil;
 
-            if ([scanner scanCharactersFromSet:captureGroupMarker intoString:&buffer]) {
-                if (buffer.length > 1) {
-                    // 2-a) in case we read a *seqence* of "$"s, only the last may denote a capture group, the rest are verbatim
-                    [result appendString:[buffer substringWithRange:NSMakeRange(0, buffer.length - 1)]];
+            NSScanner *scanner = [NSScanner scannerWithString:template];
+            NSMutableString *result = [NSMutableString new];
+            // FIXME: <rodionovd> we should also handle the escape characters (\) here, but I'm lazy today
+            // See https://developer.apple.com/documentation/foundation/nsregularexpression?language=objc#Template-Matching-Format
+            NSCharacterSet *captureGroupMarker = [NSCharacterSet characterSetWithCharactersInString:@"$"];
+            while (![scanner isAtEnd]) {
+                NSString *buffer;
+                // 1) eat up verbatim text
+                if ([scanner scanUpToCharactersFromSet:captureGroupMarker intoString:&buffer]) {
+                    [result appendString:buffer];
                 }
-                // 2-b) TTT
-                BOOL shouldUppercaseCaptureGroup = NO;
-                BOOL shouldLowercaseCaptureGroup = NO;
-                BOOL shouldCapitalizeCaptureGroup = NO;
-                if ([scanner scanCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@"^"] intoString:NULL]) {
-                    shouldUppercaseCaptureGroup = YES;
-                } else if ([scanner scanCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@"."] intoString:NULL]) {
-                    shouldLowercaseCaptureGroup = YES;
-                } else if ([scanner scanCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@"-"] intoString:NULL]) {
-                    shouldCapitalizeCaptureGroup = YES;
-                }
-
-                // 3) eat up as many digits as a capture group index as we can until it stops being a valid index
+                // 2) try to eat the $ symbol(s)
                 buffer = nil;
-                if (![scanner scanCharactersFromSet:[NSCharacterSet decimalDigitCharacterSet] intoString:&buffer]) {
-                    // 3-a) no digits followed the $ symbol, so it's not a capture group
-                    [result appendString:@"$"];
-                    continue;
-                }
-                NSInteger captureGroupIndex = 0;
-                NSString *leftoverDigits = nil;
-                for (NSInteger cutoff = 1; cutoff <= buffer.length; cutoff++) {
-                    NSInteger candidate = [[buffer substringToIndex:cutoff] integerValue];
-                    if (candidate <= [self numberOfCaptureGroups]) {
-                        captureGroupIndex = candidate;
-                        leftoverDigits = [buffer substringFromIndex:cutoff];
+
+                if ([scanner scanCharactersFromSet:captureGroupMarker intoString:&buffer]) {
+                    if (buffer.length > 1) {
+                        // 2-a) in case we read a *seqence* of "$"s, only the last may denote a capture group, the rest are verbatim
+                        [result appendString:[buffer substringWithRange:NSMakeRange(0, buffer.length - 1)]];
+                    }
+                    // 2-b) TTT
+                    BOOL shouldUppercaseCaptureGroup = NO;
+                    BOOL shouldLowercaseCaptureGroup = NO;
+                    BOOL shouldCapitalizeCaptureGroup = NO;
+                    if ([scanner scanCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@"^"] intoString:NULL]) {
+                        shouldUppercaseCaptureGroup = YES;
+                    } else if ([scanner scanCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@"."] intoString:NULL]) {
+                        shouldLowercaseCaptureGroup = YES;
+                    } else if ([scanner scanCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@"-"] intoString:NULL]) {
+                        shouldCapitalizeCaptureGroup = YES;
+                    }
+
+                    // 3) eat up as many digits as a capture group index as we can until it stops being a valid index
+                    buffer = nil;
+                    if (![scanner scanCharactersFromSet:[NSCharacterSet decimalDigitCharacterSet] intoString:&buffer]) {
+                        // 3-a) no digits followed the $ symbol, so it's not a capture group
+                        [result appendString:@"$"];
+                        continue;
+                    }
+                    NSInteger captureGroupIndex = 0;
+                    NSString *leftoverDigits = nil;
+                    for (NSInteger cutoff = 1; cutoff <= buffer.length; cutoff++) {
+                        NSInteger candidate = [[buffer substringToIndex:cutoff] integerValue];
+                        if (candidate <= [self numberOfCaptureGroups]) {
+                            captureGroupIndex = candidate;
+                            leftoverDigits = [buffer substringFromIndex:cutoff];
+                        }
+                    }
+                    if (captureGroupIndex == 0) {
+                        // the given capture group index doesn't make sense, skip it entirely
+                        // (this matches the NSRegularExpression behavour)
+                        break;
+                    }
+                    NSString *captureGroupValue = ^NSString *(void) {
+                        NSString *singleGroupTemplate = [NSString stringWithFormat:@"$%li", captureGroupIndex];
+                        return originalIMP(self, swizzleInfo.selector, match, input, offset, singleGroupTemplate);
+                    }();
+                    if (shouldUppercaseCaptureGroup) {
+                        [result appendString:[captureGroupValue localizedUppercaseString]];
+                    } else if (shouldLowercaseCaptureGroup) {
+                        [result appendString:[captureGroupValue localizedLowercaseString]];
+                    } else if (shouldCapitalizeCaptureGroup) {
+                        [result appendString:[captureGroupValue localizedCapitalizedString]];
+                    } else {
+                        [result appendString:captureGroupValue];
+                    }
+
+                    if (leftoverDigits) {
+                        [result appendString:leftoverDigits];
                     }
                 }
-                if (captureGroupIndex == 0) {
-                    // the given capture group index doesn't make sense, skip it entirely
-                    // (this matches the NSRegularExpression behavour)
-                    break;
-                }
-                NSString *captureGroupValue = ^(void) {
-                    NSString *singleGroupTemplate = [NSString stringWithFormat:@"$%li", captureGroupIndex];
-                    return RSSWCallOriginal(match, input, offset, singleGroupTemplate);
-                }();
-                if (shouldUppercaseCaptureGroup) {
-                    [result appendString:[captureGroupValue localizedUppercaseString]];
-                } else if (shouldLowercaseCaptureGroup) {
-                    [result appendString:[captureGroupValue localizedLowercaseString]];
-                } else if (shouldCapitalizeCaptureGroup) {
-                    [result appendString:[captureGroupValue localizedCapitalizedString]];
-                } else {
-                    [result appendString:captureGroupValue];
-                }
-
-                if (leftoverDigits) {
-                    [result appendString:leftoverDigits];
-                }
             }
-        }
-        return [result copy];
-    }), RSSwizzleModeOncePerClass, NSRegularExpressionSwizzleKey);
+            return [result copy];
+        };
+    } mode:RSSwizzleModeOncePerClass key:NSRegularExpressionSwizzleKey];
 }
 
 @end
