@@ -70,22 +70,23 @@ static const void *NSRegularExpressionSwizzleKey = &NSRegularExpressionSwizzleKe
                         [result appendString:[buffer substringWithRange:NSMakeRange(0, buffer.length - 1)]];
                     }
                     // 2-b) TTT
+                    NSString *caseModifierSymbol = nil;
                     BOOL shouldUppercaseCaptureGroup = NO;
                     BOOL shouldLowercaseCaptureGroup = NO;
                     BOOL shouldCapitalizeCaptureGroup = NO;
-                    if ([scanner scanCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@"^"] intoString:NULL]) {
+                    if ([scanner scanString:@"^" intoString:&caseModifierSymbol]) {
                         shouldUppercaseCaptureGroup = YES;
-                    } else if ([scanner scanCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@"."] intoString:NULL]) {
+                    } else if ([scanner scanString:@"." intoString:&caseModifierSymbol]) {
                         shouldLowercaseCaptureGroup = YES;
-                    } else if ([scanner scanCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@"-"] intoString:NULL]) {
+                    } else if ([scanner scanString:@"-" intoString:&caseModifierSymbol]) {
                         shouldCapitalizeCaptureGroup = YES;
                     }
 
                     // 3) eat up as many digits as a capture group index as we can until it stops being a valid index
                     buffer = nil;
                     if (![scanner scanCharactersFromSet:[NSCharacterSet decimalDigitCharacterSet] intoString:&buffer]) {
-                        // 3-a) no digits followed the $ symbol, so it's not a capture group
-                        [result appendString:@"$"];
+                        // 3-a) no digits followed the $ symbol (after an optional case modifier), so it's not a capture group
+                        [result appendFormat:@"$%@", caseModifierSymbol ?: @""];
                         continue;
                     }
                     NSInteger captureGroupIndex = -1;
