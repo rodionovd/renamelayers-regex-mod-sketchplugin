@@ -6,6 +6,7 @@
 //
 
 #import "IEReNaMeLaYeRsPlugin.h"
+#import "IEReNaMeLaYeRsCaseModifier.h"
 #import "RSSwizzle/RSSwizzle.h"
 
 static BOOL pluginIsEnabled = NO;
@@ -70,21 +71,20 @@ static const void *NSRegularExpressionSwizzleKey = &NSRegularExpressionSwizzleKe
                         [result appendString:[buffer substringWithRange:NSMakeRange(0, buffer.length - 1)]];
                     }
                     // 2-b) try to parse an optional case modifier in between $ and N (of a "$N" capture group template)
-                    NSString *caseModifierSymbol = ^NSString *(void) {
-                        NSString *parsed = nil;
-                        for (NSString *modifier in @[@"^", @".", @"-"]) {
-                            if ([scanner scanString:modifier intoString:&parsed]) {
-                                break;
+                    IEReNaMeLaYeRsCaseModifier *caseModifier = ^IEReNaMeLaYeRsCaseModifier *(void) {
+                        for (IEReNaMeLaYeRsCaseModifier *modifier in IEReNaMeLaYeRsCaseModifier.allCases) {
+                            if ([scanner scanString:modifier.symbol intoString:NULL]) {
+                                return modifier;
                             }
                         }
-                        return parsed;
+                        return nil;
                     }();
 
                     // 3) eat up as many digits as a capture group index as we can until it stops being a valid index
                     buffer = nil;
                     if (![scanner scanCharactersFromSet:[NSCharacterSet decimalDigitCharacterSet] intoString:&buffer]) {
                         // 3-a) no digits followed the $ symbol (after an optional case modifier), so it's not a capture group
-                        [result appendFormat:@"$%@", caseModifierSymbol ?: @""];
+                        [result appendFormat:@"$%@", caseModifier.symbol ?: @""];
                         continue;
                     }
                     NSInteger captureGroupIndex = -1;
@@ -99,8 +99,8 @@ static const void *NSRegularExpressionSwizzleKey = &NSRegularExpressionSwizzleKe
                         }
                     }
                     if (captureGroupIndex == -1) {
-                        // 3-b) if the given index doesn't match any capture groups so we skip the first digit
-                        // and insert the rest of (if any) them as is, to match the NSRegularExpression behavour
+                        // 3-b) if the given index doesn't match any capture groups so we skip the first digit (with a
+                        // case modifier if any) and insert the rest of them (if any) as is, to match NSRegularExpression behavour
                         if (buffer.length > 1) {
                             [result appendString:[buffer substringFromIndex:1]];
                         }
@@ -112,15 +112,7 @@ static const void *NSRegularExpressionSwizzleKey = &NSRegularExpressionSwizzleKe
                         NSString *singleGroupTemplate = [NSString stringWithFormat:@"$%li", captureGroupIndex];
                         return originalIMP(self, swizzleInfo.selector, match, input, offset, singleGroupTemplate);
                     }();
-                    if ([caseModifierSymbol isEqualToString:@"^"]) {
-                        [result appendString:[captureGroupValue localizedUppercaseString]];
-                    } else if ([caseModifierSymbol isEqualToString:@"."]) {
-                        [result appendString:[captureGroupValue localizedLowercaseString]];
-                    } else if ([caseModifierSymbol isEqualToString:@"-"]) {
-                        [result appendString:[captureGroupValue localizedCapitalizedString]];
-                    } else {
-                        [result appendString:captureGroupValue];
-                    }
+                    [result appendString:caseModifier ? [caseModifier appliedToString:captureGroupValue] : captureGroupValue];
 
                     // 4-a) insert the rest of the digits that were not a part of the capture group number
                     if (leftoverDigits) {

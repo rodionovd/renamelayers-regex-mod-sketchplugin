@@ -12,6 +12,8 @@
 		0A4CB0102DD90F55003C8A9D /* manifest.json in Headers */ = {isa = PBXBuildFile; fileRef = 0A4CB00F2DD90F54003C8A9D /* manifest.json */; };
 		0A4CB01F2DD91833003C8A9D /* RSSwizzle.h in Headers */ = {isa = PBXBuildFile; fileRef = 0A4CB01C2DD91833003C8A9D /* RSSwizzle.h */; };
 		0A4CB0202DD91833003C8A9D /* RSSwizzle.m in Sources */ = {isa = PBXBuildFile; fileRef = 0A4CB01D2DD91833003C8A9D /* RSSwizzle.m */; };
+		0AB7E4052DDB26C100745883 /* IEReNaMeLaYeRsCaseModifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 0AB7E4032DDB26C100745883 /* IEReNaMeLaYeRsCaseModifier.h */; };
+		0AB7E4062DDB26C100745883 /* IEReNaMeLaYeRsCaseModifier.m in Sources */ = {isa = PBXBuildFile; fileRef = 0AB7E4042DDB26C100745883 /* IEReNaMeLaYeRsCaseModifier.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -22,6 +24,8 @@
 		0A4CB0112DD910DB003C8A9D /* plugin.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = plugin.js; sourceTree = "<group>"; };
 		0A4CB01C2DD91833003C8A9D /* RSSwizzle.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RSSwizzle.h; sourceTree = "<group>"; };
 		0A4CB01D2DD91833003C8A9D /* RSSwizzle.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RSSwizzle.m; sourceTree = "<group>"; };
+		0AB7E4032DDB26C100745883 /* IEReNaMeLaYeRsCaseModifier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IEReNaMeLaYeRsCaseModifier.h; sourceTree = "<group>"; };
+		0AB7E4042DDB26C100745883 /* IEReNaMeLaYeRsCaseModifier.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = IEReNaMeLaYeRsCaseModifier.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -42,6 +46,8 @@
 				0A4CB0112DD910DB003C8A9D /* plugin.js */,
 				0A4CB00B2DD90F0C003C8A9D /* IEReNaMeLaYeRsPlugin.h */,
 				0A4CB00C2DD90F0C003C8A9D /* IEReNaMeLaYeRsPlugin.m */,
+				0AB7E4032DDB26C100745883 /* IEReNaMeLaYeRsCaseModifier.h */,
+				0AB7E4042DDB26C100745883 /* IEReNaMeLaYeRsCaseModifier.m */,
 				0A4CB01E2DD91833003C8A9D /* RSSwizzle */,
 				0A4CB0012DD90ECF003C8A9D /* Products */,
 			);
@@ -74,6 +80,7 @@
 				0A4CB00E2DD90F0C003C8A9D /* IEReNaMeLaYeRsPlugin.h in Headers */,
 				0A4CB0102DD90F55003C8A9D /* manifest.json in Headers */,
 				0A4CB01F2DD91833003C8A9D /* RSSwizzle.h in Headers */,
+				0AB7E4052DDB26C100745883 /* IEReNaMeLaYeRsCaseModifier.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -161,6 +168,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0AB7E4062DDB26C100745883 /* IEReNaMeLaYeRsCaseModifier.m in Sources */,
 				0A4CB00D2DD90F0C003C8A9D /* IEReNaMeLaYeRsPlugin.m in Sources */,
 				0A4CB0202DD91833003C8A9D /* RSSwizzle.m in Sources */,
 			);
