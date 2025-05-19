@@ -69,18 +69,16 @@ static const void *NSRegularExpressionSwizzleKey = &NSRegularExpressionSwizzleKe
                         // 2-a) in case we read a *seqence* of "$"s, only the last may denote a capture group, the rest are verbatim
                         [result appendString:[buffer substringWithRange:NSMakeRange(0, buffer.length - 1)]];
                     }
-                    // 2-b) TTT
-                    NSString *caseModifierSymbol = nil;
-                    BOOL shouldUppercaseCaptureGroup = NO;
-                    BOOL shouldLowercaseCaptureGroup = NO;
-                    BOOL shouldCapitalizeCaptureGroup = NO;
-                    if ([scanner scanString:@"^" intoString:&caseModifierSymbol]) {
-                        shouldUppercaseCaptureGroup = YES;
-                    } else if ([scanner scanString:@"." intoString:&caseModifierSymbol]) {
-                        shouldLowercaseCaptureGroup = YES;
-                    } else if ([scanner scanString:@"-" intoString:&caseModifierSymbol]) {
-                        shouldCapitalizeCaptureGroup = YES;
-                    }
+                    // 2-b) try to parse an optional case modifier in between $ and N (of a "$N" capture group template)
+                    NSString *caseModifierSymbol = ^NSString *(void) {
+                        NSString *parsed = nil;
+                        for (NSString *modifier in @[@"^", @".", @"-"]) {
+                            if ([scanner scanString:modifier intoString:&parsed]) {
+                                break;
+                            }
+                        }
+                        return parsed;
+                    }();
 
                     // 3) eat up as many digits as a capture group index as we can until it stops being a valid index
                     buffer = nil;
@@ -114,15 +112,16 @@ static const void *NSRegularExpressionSwizzleKey = &NSRegularExpressionSwizzleKe
                         NSString *singleGroupTemplate = [NSString stringWithFormat:@"$%li", captureGroupIndex];
                         return originalIMP(self, swizzleInfo.selector, match, input, offset, singleGroupTemplate);
                     }();
-                    if (shouldUppercaseCaptureGroup) {
+                    if ([caseModifierSymbol isEqualToString:@"^"]) {
                         [result appendString:[captureGroupValue localizedUppercaseString]];
-                    } else if (shouldLowercaseCaptureGroup) {
+                    } else if ([caseModifierSymbol isEqualToString:@"."]) {
                         [result appendString:[captureGroupValue localizedLowercaseString]];
-                    } else if (shouldCapitalizeCaptureGroup) {
+                    } else if ([caseModifierSymbol isEqualToString:@"-"]) {
                         [result appendString:[captureGroupValue localizedCapitalizedString]];
                     } else {
                         [result appendString:captureGroupValue];
                     }
+
                     // 4-a) insert the rest of the digits that were not a part of the capture group number
                     if (leftoverDigits) {
                         [result appendString:leftoverDigits];
